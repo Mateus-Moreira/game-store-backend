@@ -1,29 +1,34 @@
 import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from './user.entity';
+import { instanceToPlain } from 'class-transformer';
+import { UserDto, CreateUserDto, UpdateUserDto } from './user.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  async create(@Body() user: Partial<User>): Promise<User> {
-    return this.userService.create(user);
+  async create(@Body() user: CreateUserDto): Promise<UserDto> {
+    const created = await this.userService.create(user);
+    return instanceToPlain(created) as UserDto;
   }
 
   @Get()
-  async findAll(): Promise<User[]> {
-    return this.userService.findAll();
+  async findAll(): Promise<UserDto[]> {
+    const users = await this.userService.findAll();
+    return users.map(user => instanceToPlain(user) as UserDto);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<User | null> {
-    return this.userService.findOne(Number(id));
+  async findOne(@Param('id') id: number): Promise<UserDto | null> {
+    const user = await this.userService.findOne(Number(id));
+    return user ? (instanceToPlain(user) as UserDto) : null;
   }
 
   @Put(':id')
-  async update(@Param('id') id: number, @Body() user: Partial<User>): Promise<User | null> {
-    return this.userService.update(Number(id), user);
+  async update(@Param('id') id: number, @Body() user: UpdateUserDto): Promise<UserDto | null> {
+    const updated = await this.userService.update(Number(id), user);
+    return updated ? (instanceToPlain(updated) as UserDto) : null;
   }
 
   @Delete(':id')
